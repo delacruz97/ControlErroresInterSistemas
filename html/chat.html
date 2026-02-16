@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat - Control de Errores</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <div class="chat-container">
+
+    <div class="chat-header">
+      <div>
+        <h2>🔎 Control Inteligente de Errores</h2>
+        <small id="sessionInfo" class="session-info"></small>
+      </div>
+      <button class="logout-btn" onclick="logout()">Salir</button>
+    </div>
+
+    <div id="chatBox" class="chat-box">
+      <div class="bot-message">
+        Hola 👋 Ingresá el número o el nombre del cliente.
+      </div>
+    </div>
+
+    <div class="input-container">
+      <input
+        type="text"
+        id="userInput"
+        placeholder="Escribí aquí..."
+        onkeydown="if(event.key==='Enter') handleMessage()"
+        disabled
+      />
+      <button id="sendBtn" onclick="handleMessage()" disabled>Enviar</button>
+    </div>
+
+  </div>
+
+  <script src="../js/chat.js"></script>
+</body>
+</html>

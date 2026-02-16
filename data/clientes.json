@@ -1,0 +1,12 @@
+{
+  "Clientes": [
+    { "IdCliente": "1001", "Nombre": "Supermercado Norte", "Activo": true },
+    { "IdCliente": "1002", "Nombre": "Distribuidora Central", "Activo": true },
+    { "IdCliente": "1003", "Nombre": "Autoservicio Sur", "Activo": false },
+    { "IdCliente": "1004", "Nombre": "Mayorista El Sol", "Activo": true },
+    { "IdCliente": "1005", "Nombre": "Almacen Don Pepe", "Activo": true },
+    { "IdCliente": "1006", "Nombre": "Kiosco La Esquina", "Activo": true },
+    { "IdCliente": "1007", "Nombre": "Market San Martin", "Activo": true },
+    { "IdCliente": "1010", "Nombre": "Frigorifico Central", "Activo": true }
+  ]
+}

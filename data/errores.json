@@ -1,0 +1,24 @@
+{
+  "Errores": [
+    { "IdError": "1", "IdCodigo": "VEN-001", "Modulo": "RecepcionPedidos", "Procedimiento": "CrearPedido", "Mensaje": "No se pudo generar el pedido. Body recibido: { \"cliente\": \"1023\", \"productos\": [] }" },
+    { "IdError": "2", "IdCodigo": "VEN-002", "Modulo": "RecepcionPedidos", "Procedimiento": "ConfirmarPedido", "Mensaje": "El pedido no puede confirmarse porque no tiene productos asociados." },
+    { "IdError": "3", "IdCodigo": "VEN-003", "Modulo": "IngresoMercaderia", "Procedimiento": "RegistrarIngreso", "Mensaje": "No se pudo registrar la mercadería. Body recibido: { \"proveedor\": \"Sin definir\" }" },
+    { "IdError": "4", "IdCodigo": "VEN-004", "Modulo": "IngresoMercaderia", "Procedimiento": "ActualizarStock", "Mensaje": "Error al actualizar stock. El producto no existe en la base de datos." },
+    { "IdError": "5", "IdCodigo": "VEN-005", "Modulo": "DetallePedido", "Procedimiento": "ObtenerDetalle", "Mensaje": "No se encontró el detalle del pedido con ID 4587." },
+    { "IdError": "6", "IdCodigo": "VEN-006", "Modulo": "Stock", "Procedimiento": "ConsultarStock", "Mensaje": "Stock insuficiente para el producto ID 9001." },
+    { "IdError": "7", "IdCodigo": "VEN-007", "Modulo": "Stock", "Procedimiento": "ReservarStock", "Mensaje": "No se pudo reservar stock. Cantidad solicitada mayor a la disponible." },
+    { "IdError": "8", "IdCodigo": "VEN-008", "Modulo": "Autenticacion", "Procedimiento": "ValidarUsuario", "Mensaje": "Credenciales inválidas. Body recibido: { \"usuario\": \"vendedor1\" }" },
+    { "IdError": "9", "IdCodigo": "VEN-009", "Modulo": "Autenticacion", "Procedimiento": "GenerarToken", "Mensaje": "No se pudo generar token JWT. Clave secreta no configurada." },
+    { "IdError": "10", "IdCodigo": "VEN-010", "Modulo": "ConexionBD", "Procedimiento": "AbrirConexion", "Mensaje": "Error de conexión con la base de datos. Timeout al intentar conectar al servidor." },
+    { "IdError": "11", "IdCodigo": "VEN-011", "Modulo": "ConexionBD", "Procedimiento": "EjecutarConsulta", "Mensaje": "Consulta SQL inválida. Error de sintaxis cerca de 'FROMM'." },
+    { "IdError": "12", "IdCodigo": "VEN-012", "Modulo": "APIExterna", "Procedimiento": "EnviarPedidoProveedor", "Mensaje": "Timeout al comunicarse con la API del proveedor." },
+    { "IdError": "13", "IdCodigo": "VEN-013", "Modulo": "RecepcionPedidos", "Procedimiento": "CancelarPedido", "Mensaje": "No se puede cancelar el pedido porque ya fue facturado." },
+    { "IdError": "14", "IdCodigo": "VEN-014", "Modulo": "Facturacion", "Procedimiento": "GenerarFactura", "Mensaje": "No se pudo generar factura. Cliente sin CUIT registrado." },
+    { "IdError": "15", "IdCodigo": "VEN-015", "Modulo": "Facturacion", "Procedimiento": "EnviarFactura", "Mensaje": "Error al enviar factura por email. Servidor SMTP no responde." },
+    { "IdError": "16", "IdCodigo": "VEN-016", "Modulo": "IngresoMercaderia", "Procedimiento": "ValidarRemito", "Mensaje": "El remito no coincide con la orden de compra registrada." },
+    { "IdError": "17", "IdCodigo": "VEN-017", "Modulo": "Stock", "Procedimiento": "AjusteInventario", "Mensaje": "Error al realizar ajuste de inventario. Usuario sin permisos." },
+    { "IdError": "18", "IdCodigo": "VEN-018", "Modulo": "Reportes", "Procedimiento": "GenerarReporteVentas", "Mensaje": "No se pudo generar reporte. Rango de fechas inválido." },
+    { "IdError": "19", "IdCodigo": "VEN-019", "Modulo": "ConexionRed", "Procedimiento": "VerificarConexion", "Mensaje": "No hay conexión a internet. Verifique la red." },
+    { "IdError": "20", "IdCodigo": "VEN-020", "Modulo": "RecepcionPedidos", "Procedimiento": "ActualizarEstadoPedido", "Mensaje": "No se pudo actualizar el estado del pedido. Pedido inexistente." }
+  ]
+}

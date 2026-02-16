@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - Control de Errores</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <h2>🔐 Iniciar sesión</h2>
+      <p class="login-sub">Acceso restringido</p>
+
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Ingresá usuario" autocomplete="off" />
+
+      <label>Clave</label>
+      <input type="password" id="loginPass" placeholder="Ingresá clave" />
+
+      <button onclick="handleLogin()">Ingresar</button>
+
+      <p id="loginError" class="login-error hidden">Usuario o clave incorrectos.</p>
+    </div>
+  </div>
+
+  <script src="../js/login.js"></script>
+</body>
+</html>
