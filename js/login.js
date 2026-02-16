@@ -8,7 +8,7 @@ function handleLogin() {
 
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     localStorage.setItem("isLogged", "true");
-    window.location.href = "../html/chat.html";
+    window.location.href = "./chat.html";
   } else {
     err.classList.remove("hidden");
   }
@@ -22,5 +22,5 @@ document.addEventListener("keydown", (e) => {
 // Si ya está logueado, redirige directo al chat
 window.addEventListener("load", () => {
   const isLogged = localStorage.getItem("isLogged") === "true";
-  if (isLogged) window.location.href = "../html/chat.html";
+  if (isLogged) window.location.href = "./chat.html";
 });

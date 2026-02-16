@@ -2,7 +2,7 @@
 window.addEventListener("load", async () => {
   const isLogged = localStorage.getItem("isLogged") === "true";
   if (!isLogged) {
-    window.location.href = "../html/index.html";
+    window.location.href = "./index.html";
     return;
   }
 
@@ -23,7 +23,7 @@ window.addEventListener("load", async () => {
 
 function logout() {
   localStorage.removeItem("isLogged");
-  window.location.href = "../html/index.html";
+  window.location.href = "./index.html";
 }
 
 function setInputEnabled(enabled) {
@@ -41,7 +41,7 @@ let erroresByCode = {};    // "VEN-001" -> error
 
 async function loadClientesFromJson() {
   try {
-    const res = await fetch("../data/clientes.json", { cache: "no-store" });
+    const res = await fetch("./data/clientes.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -59,7 +59,7 @@ async function loadClientesFromJson() {
 
 async function loadErroresFromJson() {
   try {
-    const res = await fetch("../data/errores.json", { cache: "no-store" });
+    const res = await fetch("./data/errores.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
