@@ -2,7 +2,7 @@
 window.addEventListener("load", async () => {
   const isLogged = localStorage.getItem("isLogged") === "true";
   if (!isLogged) {
-    window.location.href = "../html/login.html";
+    window.location.href = "../html/index.html";
     return;
   }
 
@@ -23,7 +23,7 @@ window.addEventListener("load", async () => {
 
 function logout() {
   localStorage.removeItem("isLogged");
-  window.location.href = "../html/login.html";
+  window.location.href = "../html/index.html";
 }
 
 function setInputEnabled(enabled) {
