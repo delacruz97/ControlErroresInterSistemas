@@ -1,0 +1,16 @@
+https://dashboard.ngrok.com/login
+
+
+Ngrok: 
+ngrok es una herramienta que crea un túnel seguro entre internet y tu máquina local.
+
+El problema sin ngrok
+Mercado Pago necesita enviar notificaciones (webhooks) a tu backend, pero tu backend corre en localhost:3001, una dirección que sólo existe en tu computadora. MP no puede llegar ahí desde internet.
+
+Internet (Mercado Pago)
+        │
+        ▼
+https://abcd-1234.ngrok-free.app   ← URL pública temporal (ngrok)
+        │
+        ▼  túnel cifrado
+localhost:3001  ← tu servidor Express

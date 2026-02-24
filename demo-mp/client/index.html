@@ -1,0 +1,382 @@
+<!doctype html>
+<!--
+  ============================================================================
+  client/index.html
+  Frontend del demo de Mercado Pago - Checkout Pro
+  ----------------------------------------------------------------------------
+  Responsabilidades:
+    1. Cargar el catálogo de productos desde el backend y mostrarlo en un select.
+    2. Permitir al usuario elegir un producto y una cantidad.
+    3. Enviar la solicitud al backend para crear la preferencia de pago.
+    4. Redirigir al checkout de Mercado Pago.
+    5. Al volver de MP, hacer polling del estado del pago y mostrarlo.
+  ============================================================================
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Demo Mercado Pago — Almacén</title>
+
+  <!-- =========================================================
+    SECCIÓN: Estilos CSS
+    Estilos mínimos para que el demo se vea ordenado.
+    En un proyecto real usarías un framework (Bootstrap, Tailwind, etc.)
+  ========================================================= -->
+  <style>
+    /* Fuente base, ancho máximo centrado y padding lateral */
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    /* Botones con cursor de puntero y padding cómodo */
+    button {
+      padding: 10px 18px;
+      cursor: pointer;
+      background: #009ee3;  /* Azul Mercado Pago */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 8px;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Resalta código inline (ej: external_reference) */
+    code {
+      background: #f3f3f3;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* Contenedor con borde suave para agrupar controles */
+    .box {
+      border: 1px solid #ddd;
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 16px;
+      background: white;
+    }
+
+    /* Espaciado entre etiquetas del formulario */
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* Inputs con ancho completo */
+    input, select {
+      width: 100%;
+      padding: 6px 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    /* Resalta el precio calculado */
+    #totalDisplay {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #009ee3;
+      margin-top: 12px;
+    }
+
+    /* Estado del pago con color según resultado */
+    .status-approved  { color: green;  font-weight: bold; }
+    .status-rejected  { color: red;    font-weight: bold; }
+    .status-pending   { color: orange; font-weight: bold; }
+    .status-cancelled { color: gray;   font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+    SECCIÓN: Encabezado
+  ========================================================= -->
+  <h1>Demo Almacén — Mercado Pago Checkout Pro</h1>
+  <p>
+    Seleccioná un producto, elegí la cantidad y hacé clic en
+    <strong>Pagar con Mercado Pago</strong>.
+  </p>
+
+  <!-- =========================================================
+    SECCIÓN: Formulario de compra
+    El usuario elige producto y cantidad.
+    El precio unitario y el total se calculan automáticamente.
+  ========================================================= -->
+  <div class="box">
+    <h3>Tu pedido</h3>
+
+    <!-- Select dinámico: se llena con los productos del backend -->
+    <label>
+      Producto:
+      <select id="productSelect">
+        <option value="">Cargando productos...</option>
+      </select>
+    </label>
+
+    <!-- Cantidad de unidades -->
+    <label>
+      Cantidad:
+      <input id="qty" type="number" value="1" min="1" max="99" />
+    </label>
+
+    <!-- Total calculado automáticamente en el frontend -->
+    <div id="totalDisplay">Total: ARS $—</div>
+
+    <!-- Botón de pago; se deshabilita mientras procesa -->
+    <button id="payBtn" disabled>Pagar con Mercado Pago</button>
+  </div>
+
+  <!-- =========================================================
+    SECCIÓN: Caja de estado del pago
+    Oculta por defecto; se muestra luego de crear la preferencia
+    o al volver del checkout de MP con ?result=...
+  ========================================================= -->
+  <div class="box" id="statusBox" style="display:none;">
+    <h3>Estado del pago</h3>
+    <!-- Muestra el status actual (pending / approved / etc.) -->
+    <div id="statusText">-</div>
+    <!-- Muestra el external_reference para referencia -->
+    <div id="refText" style="margin-top:8px; font-size:0.9rem; color:#666;"></div>
+  </div>
+
+  <!-- =========================================================
+    SECCIÓN: JavaScript del frontend
+    Maneja la carga de productos, el cálculo del total,
+    la creación de la preferencia y el polling de estado.
+  ========================================================= -->
+  <script>
+    // -------------------------------------------------------
+    // CONFIGURACIÓN
+    // URL base del backend. En producción, cámbiala por el
+    // dominio real o la variable de entorno correspondiente.
+    // -------------------------------------------------------
+    const API = "http://localhost:3001";
+
+    // -------------------------------------------------------
+    // REFERENCIAS AL DOM
+    // Guardamos las referencias a los elementos HTML para
+    // no tener que buscarlos cada vez que los usemos.
+    // -------------------------------------------------------
+    const productSelect  = document.getElementById("productSelect");
+    const qtyInput       = document.getElementById("qty");
+    const totalDisplay   = document.getElementById("totalDisplay");
+    const payBtn         = document.getElementById("payBtn");
+    const statusBox      = document.getElementById("statusBox");
+    const statusText     = document.getElementById("statusText");
+    const refText        = document.getElementById("refText");
+
+    // Catálogo de productos tal como lo devuelve el backend
+    let catalog = [];
+
+    // -------------------------------------------------------
+    // FUNCIÓN: setStatus
+    // Muestra la caja de estado con el mensaje indicado.
+    // @param {string} msg     - Texto a mostrar
+    // @param {string} [cls]   - Clase CSS opcional (status-approved, etc.)
+    // -------------------------------------------------------
+    function setStatus(msg, cls = "") {
+      statusBox.style.display = "block";
+      statusText.className = cls;
+      statusText.innerText = msg;
+    }
+
+    // -------------------------------------------------------
+    // FUNCIÓN: updateTotal
+    // Calcula y muestra el total (precio unitario × cantidad)
+    // cada vez que el usuario cambia el producto o la cantidad.
+    // -------------------------------------------------------
+    function updateTotal() {
+      // Buscamos el producto seleccionado en el catálogo local
+      const selected = catalog.find((p) => p.id === productSelect.value);
+      if (!selected) {
+        totalDisplay.innerText = "Total: ARS $—";
+        return;
+      }
+
+      const qty   = Math.max(1, parseInt(qtyInput.value) || 1);
+      const total = selected.unit_price * qty;
+
+      // Formateamos el número con separador de miles
+      totalDisplay.innerText = `Total: ARS $${total.toLocaleString("es-AR")}`;
+    }
+
+    // -------------------------------------------------------
+    // FUNCIÓN: loadProducts
+    // Llama al endpoint GET /api/products del backend para
+    // obtener el catálogo y llenar el <select> dinámicamente.
+    // -------------------------------------------------------
+    async function loadProducts() {
+      try {
+        const res  = await fetch(`${API}/api/products`);
+        catalog    = await res.json();
+
+        // Vaciamos el select y agregamos una opción por cada producto
+        productSelect.innerHTML = "";
+        catalog.forEach((p) => {
+          const opt   = document.createElement("option");
+          opt.value   = p.id;
+          opt.textContent = `${p.title} — ARS $${p.unit_price.toLocaleString("es-AR")}`;
+          productSelect.appendChild(opt);
+        });
+
+        // Habilitamos el botón de pago una vez que el catálogo cargó
+        payBtn.disabled = false;
+        updateTotal(); // Mostramos el total del primer producto
+
+      } catch (err) {
+        productSelect.innerHTML = '<option value="">Error al cargar productos</option>';
+        console.error("Error cargando catálogo:", err);
+      }
+    }
+
+    // -------------------------------------------------------
+    // FUNCIÓN: pollStatus
+    // Hace polling (consultas repetidas) al backend para
+    // verificar el estado del pago hasta que quede en un
+    // estado final (approved / rejected / cancelled / failed)
+    // o se agote el tiempo máximo.
+    //
+    // @param {string} external_reference - UUID del pago
+    // -------------------------------------------------------
+    async function pollStatus(external_reference) {
+      // Mostramos la referencia en la UI
+      refText.innerHTML = `external_reference: <code>${external_reference}</code>`;
+      setStatus("Verificando pago...", "");
+
+      const start     = Date.now();
+      const timeoutMs = 60000; // 60 segundos máximo de polling
+
+      while (Date.now() - start < timeoutMs) {
+        try {
+          const res = await fetch(`${API}/api/payment-status/${external_reference}`);
+          if (res.ok) {
+            const data = await res.json();
+
+            // Determinamos la clase CSS según el estado
+            const cls = data.status === "approved"  ? "status-approved"
+                      : data.status === "rejected"  ? "status-rejected"
+                      : data.status === "pending"   ? "status-pending"
+                      : data.status === "cancelled" ? "status-cancelled"
+                      : "";
+
+            setStatus(
+              `Estado: ${data.status} | payment_id: ${data.mp_payment_id || "-"}`,
+              cls
+            );
+
+            // Si llegamos a un estado final, dejamos de consultar
+            if (["approved", "rejected", "cancelled", "failed"].includes(data.status)) {
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Error en polling:", e);
+        }
+
+        // Esperamos 2 segundos antes de la próxima consulta
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+
+      // Si llegamos acá, se terminó el tiempo sin estado final
+      setStatus("Timeout verificando. El pago puede seguir pendiente.", "status-pending");
+    }
+
+    // -------------------------------------------------------
+    // LÓGICA DE RETORNO DESDE MERCADO PAGO
+    // Cuando el usuario termina el checkout MP lo redirige a
+    // back_urls con ?result=success|pending|failure.
+    // Recuperamos el external_reference que guardamos en
+    // localStorage antes de redirigir y hacemos polling.
+    // -------------------------------------------------------
+    const savedRef  = localStorage.getItem("last_external_reference");
+    const urlParams = new URLSearchParams(location.search);
+    const result    = urlParams.get("result");
+
+    if (result && savedRef) {
+      // Limpiamos el parámetro de la URL sin recargar la página
+      history.replaceState({}, "", location.pathname);
+      pollStatus(savedRef);
+    }
+
+    // -------------------------------------------------------
+    // EVENTO: Recalcular total cuando cambia el producto o cantidad
+    // -------------------------------------------------------
+    productSelect.addEventListener("change", updateTotal);
+    qtyInput.addEventListener("input", updateTotal);
+
+    // -------------------------------------------------------
+    // EVENTO: Click en el botón "Pagar"
+    // 1. Lee producto y cantidad del formulario
+    // 2. Envía POST /api/create-preference al backend
+    // 3. Guarda el external_reference en localStorage
+    // 4. Redirige a MP (sandbox_init_point en modo prueba)
+    // -------------------------------------------------------
+    payBtn.addEventListener("click", async () => {
+      const productId = productSelect.value;
+      const quantity  = Number(qtyInput.value);
+
+      if (!productId) {
+        alert("Seleccioná un producto.");
+        return;
+      }
+      if (quantity < 1) {
+        alert("La cantidad debe ser al menos 1.");
+        return;
+      }
+
+      // Deshabilitamos el botón mientras esperamos la respuesta del backend
+      payBtn.disabled = true;
+      payBtn.textContent = "Procesando...";
+
+      try {
+        // Enviamos la solicitud de creación de preferencia al backend
+        const res = await fetch(`${API}/api/create-preference`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId, quantity }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Error creando preferencia: " + JSON.stringify(data));
+          return;
+        }
+
+        // Guardamos el external_reference para poder consultarlo al volver de MP
+        localStorage.setItem("last_external_reference", data.external_reference);
+
+        // Redirigimos al checkout de Mercado Pago.
+        // En modo sandbox (credenciales de prueba) se usa sandbox_init_point.
+        // En producción se usa init_point.
+        window.location.href = data.sandbox_init_point || data.init_point;
+
+      } catch (err) {
+        alert("Error de red: " + err.message);
+      } finally {
+        // Rehabilitamos el botón si no se redirigió (por error)
+        payBtn.disabled = false;
+        payBtn.textContent = "Pagar con Mercado Pago";
+      }
+    });
+
+    // -------------------------------------------------------
+    // INICIALIZACIÓN
+    // Cargamos el catálogo al abrir la página
+    // -------------------------------------------------------
+    loadProducts();
+  </script>
+</body>
+</html>
